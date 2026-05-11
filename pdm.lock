@@ -4,8 +4,11 @@
 [metadata]
 groups = ["default", "dev"]
 strategy = ["cross_platform", "inherit_metadata"]
-lock_version = "4.4.1"
-content_hash = "sha256:f4a9caa0201e010165e3e57320fd8778fe751e2587972406ba22c0f594c9db1b"
+lock_version = "4.5.0"
+content_hash = "sha256:552dd5d1981968173272adeb2cc27590f793fd30430f0c57d0af651677d2b2d7"
+
+[[metadata.targets]]
+requires_python = ">=3.9"
 
 [[package]]
 name = "annotated-types"
