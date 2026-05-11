@@ -3,15 +3,14 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "nonebot-plugin-bilibili-downloader"
-version = "0.1.0"
+name = "nonebot-plugin-bilidownloader-woju"
+version = "0.1.1"
 description = "哔哩哔哩文件下载器插件 for NoneBot2"
-authors = [{name = "Wojusensei", email = "your-email@example.com"}]
+authors = [{name = "Wojusensei", email = "3442006415@qq.com"}]
 readme = "README.md"
 license = {text = "MIT"}
 classifiers = [
     "Programming Language :: Python :: 3",
-    "Framework :: NoneBot2",
 ]
 dependencies = [
     "nonebot2>=2.3.0",

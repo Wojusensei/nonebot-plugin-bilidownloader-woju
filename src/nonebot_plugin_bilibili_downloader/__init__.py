@@ -14,15 +14,15 @@ from .config import Config
 
 
 __plugin_meta__ = PluginMetadata(
-    name="ßÙÁ¨ßÙÁ¨ÎÄ¼şÏÂÔØÆ÷",
-    description="´ÓBÕ¾ÊÓÆµÏÂÔØÒôÆµ(MP3)¡¢ÊÓÆµ(MP4)ºÍ·âÃæÍ¼",
+    name="å“”å“©å“”å“©æ–‡ä»¶ä¸‹è½½å™¨",
+    description="ä»Bç«™è§†é¢‘ä¸‹è½½éŸ³é¢‘(MP3)ã€è§†é¢‘(MP4)å’Œå°é¢å›¾",
     usage=(
-        "@»úÆ÷ÈË /mp3 ÊÓÆµµØÖ·  ¡ú ·¢ËÍÒôÆµÎÄ¼ş\n"
-        "@»úÆ÷ÈË /mp4 ÊÓÆµµØÖ·  ¡ú ·¢ËÍÊÓÆµÎÄ¼ş\n"
-        "@»úÆ÷ÈË /·âÃæÍ¼ ÊÓÆµµØÖ· ¡ú ·¢ËÍ·âÃæÍ¼Æ¬"
+        "@æœºå™¨äºº /mp3 è§†é¢‘åœ°å€  â†’ å‘é€éŸ³é¢‘æ–‡ä»¶\n"
+        "@æœºå™¨äºº /mp4 è§†é¢‘åœ°å€  â†’ å‘é€è§†é¢‘æ–‡ä»¶\n"
+        "@æœºå™¨äºº /å°é¢å›¾ è§†é¢‘åœ°å€ â†’ å‘é€å°é¢å›¾ç‰‡"
     ),
     type="application",
-    homepage="https://github.com/Wojusensei/nonebot-plugin-bilibili-downloader",
+    homepage="https://github.com/Wojusensei/nonebot-plugin-bilidownloader-woju",
     config=Config,
     supported_adapters={"~onebot.v11"},
 )
@@ -68,32 +68,32 @@ def clean_temp_file(path: Path):
         if path.exists():
             path.unlink()
     except Exception as e:
-        logger.warning(f"ÇåÀíÁÙÊ±ÎÄ¼şÊ§°Ü {path}: {e}")
+        logger.warning(f"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½Ä¼ï¿½Ê§ï¿½ï¿½ {path}: {e}")
 
 
 mp3_cmd = on_command("/mp3", aliases={"mp3"}, priority=10, block=True)
 mp4_cmd = on_command("/mp4", aliases={"mp4"}, priority=10, block=True)
-cover_cmd = on_command("/·âÃæÍ¼", aliases={"·âÃæÍ¼"}, priority=10, block=True)
+cover_cmd = on_command("/ï¿½ï¿½ï¿½ï¿½Í¼", aliases={"ï¿½ï¿½ï¿½ï¿½Í¼"}, priority=10, block=True)
 
 
 @mp3_cmd.handle()
 async def handle_mp3(event: Event, args: str = CommandArg()):
     raw = args.extract_plain_text().strip()
     if not raw:
-        await mp3_cmd.finish("ÇëÌá¹©BÕ¾ÊÓÆµÁ´½Ó»òBVºÅ£¬ÀıÈç£º\n/mp3 BV1xx411c7mD")
+        await mp3_cmd.finish("ï¿½ï¿½ï¿½á¹©BÕ¾ï¿½ï¿½Æµï¿½ï¿½ï¿½Ó»ï¿½BVï¿½Å£ï¿½ï¿½ï¿½ï¿½ç£º\n/mp3 BV1xx411c7mD")
 
     video_url = get_video_url_from_message(raw)
     bvid = extract_bvid(video_url)
     if not bvid:
-        await mp3_cmd.finish("Î´ÄÜÊ¶±ğBVºÅ£¬Çë¼ì²éÁ´½ÓÊÇ·ñÕıÈ·")
+        await mp3_cmd.finish("Î´ï¿½ï¿½Ê¶ï¿½ï¿½BVï¿½Å£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ï¿½ï¿½È·")
 
-    await mp3_cmd.send(f"?? ÕıÔÚ»ñÈ¡ÊÓÆµĞÅÏ¢£º{bvid}")
+    await mp3_cmd.send(f"?? ï¿½ï¿½ï¿½Ú»ï¿½È¡ï¿½ï¿½Æµï¿½ï¿½Ï¢ï¿½ï¿½{bvid}")
 
     try:
         info = await get_video_info(bvid)
     except Exception as e:
-        logger.error(f"»ñÈ¡ÊÓÆµĞÅÏ¢Ê§°Ü: {e}")
-        await mp3_cmd.finish(f"»ñÈ¡ÊÓÆµĞÅÏ¢Ê§°Ü£º{str(e)}")
+        logger.error(f"ï¿½ï¿½È¡ï¿½ï¿½Æµï¿½ï¿½Ï¢Ê§ï¿½ï¿½: {e}")
+        await mp3_cmd.finish(f"ï¿½ï¿½È¡ï¿½ï¿½Æµï¿½ï¿½Ï¢Ê§ï¿½Ü£ï¿½{str(e)}")
 
     v = video.Video(bvid=bvid)
     try:
@@ -101,26 +101,26 @@ async def handle_mp3(event: Event, args: str = CommandArg()):
         dash = download_info.get("data", {}).get("dash", {})
         audio_list = dash.get("audio")
         if not audio_list:
-            await mp3_cmd.finish("¸ÃÊÓÆµÃ»ÓĞ¿ÉÓÃµÄÒôÆµÁ÷")
+            await mp3_cmd.finish("ï¿½ï¿½ï¿½ï¿½ÆµÃ»ï¿½Ğ¿ï¿½ï¿½Ãµï¿½ï¿½ï¿½Æµï¿½ï¿½")
         best_audio = max(audio_list, key=lambda x: x.get("bandwidth", 0))
         audio_url = best_audio["baseUrl"]
     except Exception as e:
-        await mp3_cmd.finish(f"»ñÈ¡ÒôÆµµØÖ·Ê§°Ü£º{str(e)}")
+        await mp3_cmd.finish(f"ï¿½ï¿½È¡ï¿½ï¿½Æµï¿½ï¿½Ö·Ê§ï¿½Ü£ï¿½{str(e)}")
 
     title = info.get("title", bvid)
     safe_title = re.sub(r'[\\/*?:"<>|]', "", title)[:50]
     temp_file = CACHE_DIR / f"{bvid}_audio.mp3"
-    await mp3_cmd.send("?? ÕıÔÚÏÂÔØÒôÆµÎÄ¼ş£¬¿ÉÄÜĞèÒªÊ®¼¸Ãë¡­")
+    await mp3_cmd.send("?? ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æµï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÒªÊ®ï¿½ï¿½ï¿½ë¡­")
 
     ok, err = await download_file(audio_url, temp_file)
     if not ok:
-        await mp3_cmd.finish(f"ÏÂÔØÊ§°Ü£º{err}")
+        await mp3_cmd.finish(f"ï¿½ï¿½ï¿½ï¿½Ê§ï¿½Ü£ï¿½{err}")
 
     try:
         await mp3_cmd.send(MessageSegment.file(temp_file))
-        await mp3_cmd.send(f"? ÒôÆµÒÑ·¢ËÍ£º{safe_title}")
+        await mp3_cmd.send(f"? ï¿½ï¿½Æµï¿½Ñ·ï¿½ï¿½Í£ï¿½{safe_title}")
     except Exception as e:
-        await mp3_cmd.send(f"·¢ËÍÎÄ¼şÊ±³ö´í£º{str(e)}")
+        await mp3_cmd.send(f"ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½Ê±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½{str(e)}")
     finally:
         clean_temp_file(temp_file)
 
@@ -129,18 +129,18 @@ async def handle_mp3(event: Event, args: str = CommandArg()):
 async def handle_mp4(event: Event, args: str = CommandArg()):
     raw = args.extract_plain_text().strip()
     if not raw:
-        await mp4_cmd.finish("ÇëÌá¹©BÕ¾ÊÓÆµÁ´½Ó»òBVºÅ£¬ÀıÈç£º\n/mp4 BV1xx411c7mD")
+        await mp4_cmd.finish("ï¿½ï¿½ï¿½á¹©BÕ¾ï¿½ï¿½Æµï¿½ï¿½ï¿½Ó»ï¿½BVï¿½Å£ï¿½ï¿½ï¿½ï¿½ç£º\n/mp4 BV1xx411c7mD")
 
     video_url = get_video_url_from_message(raw)
     bvid = extract_bvid(video_url)
     if not bvid:
-        await mp4_cmd.finish("Î´ÄÜÊ¶±ğBVºÅ")
+        await mp4_cmd.finish("Î´ï¿½ï¿½Ê¶ï¿½ï¿½BVï¿½ï¿½")
 
-    await mp4_cmd.send(f"?? ÕıÔÚ»ñÈ¡ÊÓÆµĞÅÏ¢£º{bvid}")
+    await mp4_cmd.send(f"?? ï¿½ï¿½ï¿½Ú»ï¿½È¡ï¿½ï¿½Æµï¿½ï¿½Ï¢ï¿½ï¿½{bvid}")
     try:
         info = await get_video_info(bvid)
     except Exception as e:
-        await mp4_cmd.finish(f"»ñÈ¡ÊÓÆµĞÅÏ¢Ê§°Ü£º{str(e)}")
+        await mp4_cmd.finish(f"ï¿½ï¿½È¡ï¿½ï¿½Æµï¿½ï¿½Ï¢Ê§ï¿½Ü£ï¿½{str(e)}")
 
     v = video.Video(bvid=bvid)
     try:
@@ -148,26 +148,26 @@ async def handle_mp4(event: Event, args: str = CommandArg()):
         dash = download_info.get("data", {}).get("dash", {})
         video_list = dash.get("video")
         if not video_list:
-            await mp4_cmd.finish("¸ÃÊÓÆµÃ»ÓĞ¿ÉÓÃµÄÊÓÆµÁ÷")
+            await mp4_cmd.finish("ï¿½ï¿½ï¿½ï¿½ÆµÃ»ï¿½Ğ¿ï¿½ï¿½Ãµï¿½ï¿½ï¿½Æµï¿½ï¿½")
         best_video = max(video_list, key=lambda x: x.get("bandwidth", 0))
         video_url = best_video["baseUrl"]
     except Exception as e:
-        await mp4_cmd.finish(f"»ñÈ¡ÊÓÆµµØÖ·Ê§°Ü£º{str(e)}")
+        await mp4_cmd.finish(f"ï¿½ï¿½È¡ï¿½ï¿½Æµï¿½ï¿½Ö·Ê§ï¿½Ü£ï¿½{str(e)}")
 
     title = info.get("title", bvid)
     safe_title = re.sub(r'[\\/*?:"<>|]', "", title)[:50]
     temp_file = CACHE_DIR / f"{bvid}_video.mp4"
-    await mp4_cmd.send("?? ÕıÔÚÏÂÔØÊÓÆµÎÄ¼ş£¨¿ÉÄÜÊ±¼ä½Ï³¤£©¡­")
+    await mp4_cmd.send("?? ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æµï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½Ï³ï¿½ï¿½ï¿½ï¿½ï¿½")
 
     ok, err = await download_file(video_url, temp_file)
     if not ok:
-        await mp4_cmd.finish(f"ÏÂÔØÊ§°Ü£º{err}")
+        await mp4_cmd.finish(f"ï¿½ï¿½ï¿½ï¿½Ê§ï¿½Ü£ï¿½{err}")
 
     try:
         await mp4_cmd.send(MessageSegment.file(temp_file))
-        await mp4_cmd.send(f"? ÊÓÆµÒÑ·¢ËÍ£º{safe_title}")
+        await mp4_cmd.send(f"? ï¿½ï¿½Æµï¿½Ñ·ï¿½ï¿½Í£ï¿½{safe_title}")
     except Exception as e:
-        await mp4_cmd.send(f"·¢ËÍÎÄ¼ş³ö´í£º{str(e)}")
+        await mp4_cmd.send(f"ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½{str(e)}")
     finally:
         clean_temp_file(temp_file)
 
@@ -176,32 +176,32 @@ async def handle_mp4(event: Event, args: str = CommandArg()):
 async def handle_cover(event: Event, args: str = CommandArg()):
     raw = args.extract_plain_text().strip()
     if not raw:
-        await cover_cmd.finish("ÇëÌá¹©BÕ¾ÊÓÆµÁ´½Ó»òBVºÅ£¬ÀıÈç£º\n/·âÃæÍ¼ BV1xx411c7mD")
+        await cover_cmd.finish("ï¿½ï¿½ï¿½á¹©BÕ¾ï¿½ï¿½Æµï¿½ï¿½ï¿½Ó»ï¿½BVï¿½Å£ï¿½ï¿½ï¿½ï¿½ç£º\n/ï¿½ï¿½ï¿½ï¿½Í¼ BV1xx411c7mD")
 
     video_url = get_video_url_from_message(raw)
     bvid = extract_bvid(video_url)
     if not bvid:
-        await cover_cmd.finish("Î´ÄÜÊ¶±ğBVºÅ")
+        await cover_cmd.finish("Î´ï¿½ï¿½Ê¶ï¿½ï¿½BVï¿½ï¿½")
 
-    await cover_cmd.send(f"?? ÕıÔÚ»ñÈ¡·âÃæ£º{bvid}")
+    await cover_cmd.send(f"?? ï¿½ï¿½ï¿½Ú»ï¿½È¡ï¿½ï¿½ï¿½æ£º{bvid}")
     try:
         info = await get_video_info(bvid)
     except Exception as e:
-        await cover_cmd.finish(f"»ñÈ¡ĞÅÏ¢Ê§°Ü£º{str(e)}")
+        await cover_cmd.finish(f"ï¿½ï¿½È¡ï¿½ï¿½Ï¢Ê§ï¿½Ü£ï¿½{str(e)}")
 
     cover_url = info.get("pic")
     if not cover_url:
-        await cover_cmd.finish("Ã»ÓĞÕÒµ½·âÃæÍ¼")
+        await cover_cmd.finish("Ã»ï¿½ï¿½ï¿½Òµï¿½ï¿½ï¿½ï¿½ï¿½Í¼")
 
     temp_file = CACHE_DIR / f"{bvid}_cover.jpg"
     ok, err = await download_file(cover_url, temp_file)
     if not ok:
-        await cover_cmd.finish(f"ÏÂÔØ·âÃæÊ§°Ü£º{err}")
+        await cover_cmd.finish(f"ï¿½ï¿½ï¿½Ø·ï¿½ï¿½ï¿½Ê§ï¿½Ü£ï¿½{err}")
 
     try:
         await cover_cmd.send(MessageSegment.image(temp_file))
-        await cover_cmd.send("? ·âÃæÍ¼ÒÑ·¢ËÍ")
+        await cover_cmd.send("? ï¿½ï¿½ï¿½ï¿½Í¼ï¿½Ñ·ï¿½ï¿½ï¿½")
     except Exception as e:
-        await cover_cmd.send(f"·¢ËÍÍ¼Æ¬³ö´í£º{str(e)}")
+        await cover_cmd.send(f"ï¿½ï¿½ï¿½ï¿½Í¼Æ¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½{str(e)}")
     finally:
         clean_temp_file(temp_file)
