@@ -2,13 +2,12 @@ import re
 from pathlib import Path
 from typing import Tuple, Optional
 import httpx
-from nonebot import get_driver, require
+from nonebot import on_command, require
 from nonebot.adapters.onebot.v11 import Bot, Event, MessageSegment
-from nonebot.adapters.onebot.v11.event import GroupMessageEvent
+from nonebot.params import CommandArg
 from nonebot.plugin import PluginMetadata
 from nonebot.log import logger
 from bilibili_api import video
-
 from .config import Config
 
 require("nonebot_plugin_localstore")
@@ -31,7 +30,6 @@ __plugin_meta__ = PluginMetadata(
     config=Config,
     supported_adapters={"~onebot.v11"},
 )
-
 
 def extract_bvid(url: str) -> Optional[str]:
     if re.match(r'^BV[0-9A-Za-z]{10}$', url):
