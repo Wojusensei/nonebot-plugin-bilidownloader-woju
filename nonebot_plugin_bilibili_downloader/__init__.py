@@ -79,30 +79,30 @@ driver = get_driver()
 async def register_handlers():
     from nonebot import on_command
     from nonebot.params import CommandArg
-    
+
     mp3_cmd = on_command("/mp3", aliases={"mp3"}, priority=10, block=True)
     mp4_cmd = on_command("/mp4", aliases={"mp4"}, priority=10, block=True)
     cover_cmd = on_command("/封面图", aliases={"封面图"}, priority=10, block=True)
-    
+
     @mp3_cmd.handle()
     async def handle_mp3(event: Event, args: str = CommandArg()):
         raw = args.extract_plain_text().strip()
         if not raw:
             await mp3_cmd.finish("请提供B站视频链接或BV号，例如：\n/mp3 BV1xx411c7mD")
-        
+
         video_url = get_video_url_from_message(raw)
         bvid = extract_bvid(video_url)
         if not bvid:
             await mp3_cmd.finish("未能识别BV号，请检查链接是否正确")
-        
+
         await mp3_cmd.send(f"🔍 正在获取视频信息：{bvid}")
-        
+
         try:
             info = await get_video_info(bvid)
         except Exception as e:
             logger.error(f"获取视频信息失败: {e}")
             await mp3_cmd.finish(f"获取视频信息失败：{str(e)}")
-        
+
         v = video.Video(bvid=bvid)
         try:
             download_info = await v.get_download_url()
@@ -114,16 +114,16 @@ async def register_handlers():
             audio_url = best_audio["baseUrl"]
         except Exception as e:
             await mp3_cmd.finish(f"获取音频地址失败：{str(e)}")
-        
+
         title = info.get("title", bvid)
         safe_title = re.sub(r'[\\/*?:"<>|]', "", title)[:50]
         temp_file = CACHE_DIR / f"{bvid}_audio.mp3"
         await mp3_cmd.send("📥 正在下载音频文件，可能需要十几秒…")
-        
+
         ok, err = await download_file(audio_url, temp_file)
         if not ok:
             await mp3_cmd.finish(f"下载失败：{err}")
-        
+
         try:
             await mp3_cmd.send(MessageSegment.file(temp_file))
             await mp3_cmd.send(f"✅ 音频已发送：{safe_title}")
@@ -131,24 +131,24 @@ async def register_handlers():
             await mp3_cmd.send(f"发送文件时出错：{str(e)}")
         finally:
             clean_temp_file(temp_file)
-    
+
     @mp4_cmd.handle()
     async def handle_mp4(event: Event, args: str = CommandArg()):
         raw = args.extract_plain_text().strip()
         if not raw:
             await mp4_cmd.finish("请提供B站视频链接或BV号，例如：\n/mp4 BV1xx411c7mD")
-        
+
         video_url = get_video_url_from_message(raw)
         bvid = extract_bvid(video_url)
         if not bvid:
             await mp4_cmd.finish("未能识别BV号")
-        
+
         await mp4_cmd.send(f"🔍 正在获取视频信息：{bvid}")
         try:
             info = await get_video_info(bvid)
         except Exception as e:
             await mp4_cmd.finish(f"获取视频信息失败：{str(e)}")
-        
+
         v = video.Video(bvid=bvid)
         try:
             download_info = await v.get_download_url()
@@ -160,16 +160,16 @@ async def register_handlers():
             video_url = best_video["baseUrl"]
         except Exception as e:
             await mp4_cmd.finish(f"获取视频地址失败：{str(e)}")
-        
+
         title = info.get("title", bvid)
         safe_title = re.sub(r'[\\/*?:"<>|]', "", title)[:50]
         temp_file = CACHE_DIR / f"{bvid}_video.mp4"
         await mp4_cmd.send("📥 正在下载视频文件（可能时间较长）…")
-        
+
         ok, err = await download_file(video_url, temp_file)
         if not ok:
             await mp4_cmd.finish(f"下载失败：{err}")
-        
+
         try:
             await mp4_cmd.send(MessageSegment.file(temp_file))
             await mp4_cmd.send(f"✅ 视频已发送：{safe_title}")
@@ -177,33 +177,33 @@ async def register_handlers():
             await mp4_cmd.send(f"发送文件出错：{str(e)}")
         finally:
             clean_temp_file(temp_file)
-    
+
     @cover_cmd.handle()
     async def handle_cover(event: Event, args: str = CommandArg()):
         raw = args.extract_plain_text().strip()
         if not raw:
             await cover_cmd.finish("请提供B站视频链接或BV号，例如：\n/封面图 BV1xx411c7mD")
-        
+
         video_url = get_video_url_from_message(raw)
         bvid = extract_bvid(video_url)
         if not bvid:
             await cover_cmd.finish("未能识别BV号")
-        
+
         await cover_cmd.send(f"🔍 正在获取封面：{bvid}")
         try:
             info = await get_video_info(bvid)
         except Exception as e:
             await cover_cmd.finish(f"获取信息失败：{str(e)}")
-        
+
         cover_url = info.get("pic")
         if not cover_url:
             await cover_cmd.finish("没有找到封面图")
-        
+
         temp_file = CACHE_DIR / f"{bvid}_cover.jpg"
         ok, err = await download_file(cover_url, temp_file)
         if not ok:
             await cover_cmd.finish(f"下载封面失败：{err}")
-        
+
         try:
             await cover_cmd.send(MessageSegment.image(temp_file))
             await cover_cmd.send("✅ 封面图已发送")
