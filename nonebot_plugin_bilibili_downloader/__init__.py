@@ -2,12 +2,13 @@ import re
 from pathlib import Path
 from typing import Tuple, Optional
 import httpx
-from nonebot import on_command, require
+from nonebot import get_driver, require
 from nonebot.adapters.onebot.v11 import Bot, Event, MessageSegment
-from nonebot.params import CommandArg
+from nonebot.adapters.onebot.v11.event import GroupMessageEvent
 from nonebot.plugin import PluginMetadata
 from nonebot.log import logger
 from bilibili_api import video
+
 from .config import Config
 
 require("nonebot_plugin_localstore")
@@ -30,6 +31,7 @@ __plugin_meta__ = PluginMetadata(
     config=Config,
     supported_adapters={"~onebot.v11"},
 )
+
 
 def extract_bvid(url: str) -> Optional[str]:
     if re.match(r'^BV[0-9A-Za-z]{10}$', url):
@@ -70,18 +72,21 @@ def clean_temp_file(path: Path):
         logger.warning(f"清理临时文件失败 {path}: {e}")
 
 
-def register_handlers():
-    """延迟注册命令处理函数"""
+driver = get_driver()
+
+
+@driver.on_startup
+async def register_handlers():
     from nonebot import on_command
+    from nonebot.params import CommandArg
     
     mp3_cmd = on_command("/mp3", aliases={"mp3"}, priority=10, block=True)
     mp4_cmd = on_command("/mp4", aliases={"mp4"}, priority=10, block=True)
     cover_cmd = on_command("/封面图", aliases={"封面图"}, priority=10, block=True)
     
     @mp3_cmd.handle()
-    async def handle_mp3(event: Event, args: str = None):
-        from nonebot.params import CommandArg
-        raw = CommandArg.extract_plain_text(args) if args else ""
+    async def handle_mp3(event: Event, args: str = CommandArg()):
+        raw = args.extract_plain_text().strip()
         if not raw:
             await mp3_cmd.finish("请提供B站视频链接或BV号，例如：\n/mp3 BV1xx411c7mD")
         
@@ -128,9 +133,8 @@ def register_handlers():
             clean_temp_file(temp_file)
     
     @mp4_cmd.handle()
-    async def handle_mp4(event: Event, args: str = None):
-        from nonebot.params import CommandArg
-        raw = CommandArg.extract_plain_text(args) if args else ""
+    async def handle_mp4(event: Event, args: str = CommandArg()):
+        raw = args.extract_plain_text().strip()
         if not raw:
             await mp4_cmd.finish("请提供B站视频链接或BV号，例如：\n/mp4 BV1xx411c7mD")
         
@@ -175,9 +179,8 @@ def register_handlers():
             clean_temp_file(temp_file)
     
     @cover_cmd.handle()
-    async def handle_cover(event: Event, args: str = None):
-        from nonebot.params import CommandArg
-        raw = CommandArg.extract_plain_text(args) if args else ""
+    async def handle_cover(event: Event, args: str = CommandArg()):
+        raw = args.extract_plain_text().strip()
         if not raw:
             await cover_cmd.finish("请提供B站视频链接或BV号，例如：\n/封面图 BV1xx411c7mD")
         
@@ -208,7 +211,3 @@ def register_handlers():
             await cover_cmd.send(f"发送图片出错：{str(e)}")
         finally:
             clean_temp_file(temp_file)
-
-
-driver = get_driver()
-driver.on_startup(register_handlers)

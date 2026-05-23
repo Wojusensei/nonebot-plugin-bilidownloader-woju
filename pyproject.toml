@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "nonebot-plugin-bilidownloader-woju"
-version = "0.1.8"
+version = "0.1.9"
 description = "哔哩哔哩文件下载器插件 for NoneBot2"
 authors = [{name = "Wojusensei", email = "3442006415@qq.com"}]
 readme = "README.md"
