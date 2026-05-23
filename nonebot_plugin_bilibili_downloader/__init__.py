@@ -8,14 +8,12 @@ from nonebot.adapters.onebot.v11.event import GroupMessageEvent
 from nonebot.plugin import PluginMetadata
 from nonebot.log import logger
 from bilibili_api import video
-import nonebot_plugin_localstore as store
 
 from .config import Config
 
-CACHE_DIR = store.get_plugin_cache_dir()
-CACHE_DIR.mkdir(parents=True, exist_ok=True)
-
-
+# ========================
+#  插件元数据最先定义
+# ========================
 __plugin_meta__ = PluginMetadata(
     name="哔哩哔哩文件下载器",
     description="从B站视频下载音频(MP3)、视频(MP4)和封面图",
@@ -30,13 +28,14 @@ __plugin_meta__ = PluginMetadata(
     supported_adapters={"~onebot.v11"},
 )
 
-
+# ========================
+# 工具函数
+# ========================
 def extract_bvid(url: str) -> Optional[str]:
     if re.match(r'^BV[0-9A-Za-z]{10}$', url):
         return url
     match = re.search(r'BV[0-9A-Za-z]{10}', url)
     return match.group() if match else None
-
 
 def get_video_url_from_message(msg: str) -> str:
     bvid = extract_bvid(msg)
@@ -44,12 +43,10 @@ def get_video_url_from_message(msg: str) -> str:
         return f"https://www.bilibili.com/video/{bvid}"
     return msg.strip()
 
-
 async def get_video_info(bvid: str):
     v = video.Video(bvid=bvid)
     info = await v.get_info()
     return info
-
 
 async def download_file(url: str, dest_path: Path) -> Tuple[bool, str]:
     try:
@@ -61,7 +58,6 @@ async def download_file(url: str, dest_path: Path) -> Tuple[bool, str]:
     except Exception as e:
         return False, str(e)
 
-
 def clean_temp_file(path: Path):
     try:
         if path.exists():
@@ -69,14 +65,24 @@ def clean_temp_file(path: Path):
     except Exception as e:
         logger.warning(f"清理临时文件失败 {path}: {e}")
 
+# ========================
+# 3. 延迟初始化避免模块加载时调用get_driver
+# ========================
+_handlers_registered = False
 
-driver = get_driver()
-
-
-@driver.on_startup
 async def register_handlers():
+    global _handlers_registered
+    if _handlers_registered:
+        return
+
+    # 导入需要 oneBot环境的模块
     from nonebot import on_command
     from nonebot.params import CommandArg
+    import nonebot_plugin_localstore as store
+
+    # 获取缓存目录调localstore
+    CACHE_DIR = store.get_plugin_cache_dir()
+    CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
     mp3_cmd = on_command("/mp3", aliases={"mp3"}, priority=10, block=True)
     mp4_cmd = on_command("/mp4", aliases={"mp4"}, priority=10, block=True)
@@ -132,21 +138,19 @@ async def register_handlers():
 
     @mp4_cmd.handle()
     async def handle_mp4(event: Event, args: str = CommandArg()):
+        # 略
         raw = args.extract_plain_text().strip()
         if not raw:
             await mp4_cmd.finish("请提供B站视频链接或BV号，例如：\n/mp4 BV1xx411c7mD")
-
         video_url = get_video_url_from_message(raw)
         bvid = extract_bvid(video_url)
         if not bvid:
             await mp4_cmd.finish("未能识别BV号")
-
         await mp4_cmd.send(f"🔍 正在获取视频信息：{bvid}")
         try:
             info = await get_video_info(bvid)
         except Exception as e:
             await mp4_cmd.finish(f"获取视频信息失败：{str(e)}")
-
         v = video.Video(bvid=bvid)
         try:
             download_info = await v.get_download_url()
@@ -158,16 +162,13 @@ async def register_handlers():
             video_url = best_video["baseUrl"]
         except Exception as e:
             await mp4_cmd.finish(f"获取视频地址失败：{str(e)}")
-
         title = info.get("title", bvid)
         safe_title = re.sub(r'[\\/*?:"<>|]', "", title)[:50]
         temp_file = CACHE_DIR / f"{bvid}_video.mp4"
         await mp4_cmd.send("📥 正在下载视频文件（可能时间较长）…")
-
         ok, err = await download_file(video_url, temp_file)
         if not ok:
             await mp4_cmd.finish(f"下载失败：{err}")
-
         try:
             await mp4_cmd.send(MessageSegment.file(temp_file))
             await mp4_cmd.send(f"✅ 视频已发送：{safe_title}")
@@ -178,30 +179,26 @@ async def register_handlers():
 
     @cover_cmd.handle()
     async def handle_cover(event: Event, args: str = CommandArg()):
+        # 略
         raw = args.extract_plain_text().strip()
         if not raw:
             await cover_cmd.finish("请提供B站视频链接或BV号，例如：\n/封面图 BV1xx411c7mD")
-
         video_url = get_video_url_from_message(raw)
         bvid = extract_bvid(video_url)
         if not bvid:
             await cover_cmd.finish("未能识别BV号")
-
         await cover_cmd.send(f"🔍 正在获取封面：{bvid}")
         try:
             info = await get_video_info(bvid)
         except Exception as e:
             await cover_cmd.finish(f"获取信息失败：{str(e)}")
-
         cover_url = info.get("pic")
         if not cover_url:
             await cover_cmd.finish("没有找到封面图")
-
         temp_file = CACHE_DIR / f"{bvid}_cover.jpg"
         ok, err = await download_file(cover_url, temp_file)
         if not ok:
             await cover_cmd.finish(f"下载封面失败：{err}")
-
         try:
             await cover_cmd.send(MessageSegment.image(temp_file))
             await cover_cmd.send("✅ 封面图已发送")
@@ -209,3 +206,15 @@ async def register_handlers():
             await cover_cmd.send(f"发送图片出错：{str(e)}")
         finally:
             clean_temp_file(temp_file)
+
+    _handlers_registered = True
+
+# NoneBot初始化后注册处理器
+try:
+    driver = get_driver()
+    @driver.on_startup
+    async def _startup():
+        await register_handlers()
+except Exception:
+    # if get_driver失败,忽略,不影响元数据定义
+    pass
