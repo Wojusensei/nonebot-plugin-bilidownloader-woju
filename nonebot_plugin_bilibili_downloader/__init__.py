@@ -2,17 +2,15 @@ import re
 from pathlib import Path
 from typing import Tuple, Optional
 import httpx
-from nonebot import get_driver, require
+from nonebot import get_driver
 from nonebot.adapters.onebot.v11 import Bot, Event, MessageSegment
 from nonebot.adapters.onebot.v11.event import GroupMessageEvent
 from nonebot.plugin import PluginMetadata
 from nonebot.log import logger
 from bilibili_api import video
+import nonebot_plugin_localstore as store
 
 from .config import Config
-
-require("nonebot_plugin_localstore")
-import nonebot_plugin_localstore as store
 
 CACHE_DIR = store.get_plugin_cache_dir()
 CACHE_DIR.mkdir(parents=True, exist_ok=True)
