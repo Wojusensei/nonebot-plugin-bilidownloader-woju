@@ -10,6 +10,7 @@ from nonebot.log import logger
 from bilibili_api import video
 
 from .config import Config
+from nonebot import get_plugin_config
 
 # ========================
 #  插件元数据最先定义
@@ -27,6 +28,7 @@ __plugin_meta__ = PluginMetadata(
     config=Config,
     supported_adapters={"~onebot.v11"},
 )
+config = get_plugin_config(Config)
 
 # ========================
 # 工具函数
