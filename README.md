@@ -13,18 +13,18 @@
 ```bash
 nb plugin install nonebot-plugin-bilibili-downloader
 
-## 使用
+### 使用
 在群聊中 @机器人 并输入命令
 
 命令格式：/mp3 BV1xx411c7mD 或 /mp4 https://www.bilibili.com/video/BV1xx411c7mD
 
 bot会自动下载并发送文件
 
-## 配置
+### 配置
 无需任何配置，即装即用
 
-## 注意
+### 注意
 需要给bot发送文件的权限，临时文件使用 localstore 自动管理
 
-## 开源协议
+### 开源协议
 MIT
