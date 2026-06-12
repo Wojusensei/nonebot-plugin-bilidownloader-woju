@@ -12,6 +12,7 @@
 
 ```bash
 nb plugin install nonebot-plugin-bilibili-downloader
+```
 
 ### 使用
 在群聊中 @机器人 并输入命令
