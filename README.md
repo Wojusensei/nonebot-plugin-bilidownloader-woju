@@ -26,8 +26,10 @@ bot会自动下载并发送文件
 
 ### 注意
 需要给bot发送文件的权限，临时文件使用 localstore 自动管理
+
 很少维护，不知道会出什么bug
-反正it works on my machine！（
+
+反正 it works on my machine！（
 
 ### 开源协议
 MIT
