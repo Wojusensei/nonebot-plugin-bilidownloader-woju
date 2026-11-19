@@ -1,7 +1,6 @@
 import asyncio
 import re
 import shutil
-import tempfile
 import uuid
 from pathlib import Path
 from typing import Optional, Tuple
@@ -9,14 +8,7 @@ from typing import Optional, Tuple
 import httpx
 from bilibili_api import video
 from nonebot import get_plugin_config, on_command, require
-from nonebot.adapters.onebot.v11 import (
-    Bot,
-    Event,
-    GroupMessageEvent,
-    Message,
-    MessageSegment,
-    PrivateMessageEvent,
-)
+from nonebot.adapters import Message as BaseMessage
 from nonebot.log import logger
 from nonebot.params import CommandArg
 from nonebot.plugin import PluginMetadata
@@ -24,16 +16,19 @@ from nonebot.plugin import PluginMetadata
 from .config import Config
 
 # ========================
-# 1. localstore 顶层声明与缓存目录
+# 依赖声明
 # ========================
 require("nonebot_plugin_localstore")
+require("nonebot_plugin_alconna")
+
 import nonebot_plugin_localstore as store
+from nonebot_plugin_alconna.uniseg import UniMessage
 
 CACHE_DIR = store.get_plugin_cache_dir()
 CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
 # ========================
-# 2. 插件元数据
+# 插件元数据
 # ========================
 __plugin_meta__ = PluginMetadata(
     name="哔哩哔哩文件下载器",
@@ -46,11 +41,11 @@ __plugin_meta__ = PluginMetadata(
     type="application",
     homepage="https://github.com/Wojusensei/nonebot-plugin-bilidownloader-woju",
     config=Config,
-    supported_adapters={"~onebot.v11"},
+    supported_adapters={"~onebot.v11", "~milky"},
 )
 
 # ========================
-# 3. 配置读取
+# 配置读取
 # ========================
 
 config = get_plugin_config(Config)
@@ -66,7 +61,7 @@ DOWNLOAD_HEADERS = {
 
 
 # ========================
-# 4. 工具函数
+# 工具函数
 # ========================
 
 def extract_bvid(text: str) -> Optional[str]:
@@ -175,18 +170,13 @@ def clean_temp_file(path: Path):
         logger.warning(f"清理临时文件失败 {path}: {e}")
 
 
-async def send_file(bot: Bot, event: Event, path: Path, name: str):
-    """通过群文件/私聊文件接口上传文件（OneBot v11 没有文件消息段）"""
-    if isinstance(event, GroupMessageEvent):
-        await bot.upload_group_file(group_id=event.group_id, file=str(path), name=name)
-    elif isinstance(event, PrivateMessageEvent):
-        await bot.upload_private_file(user_id=event.user_id, file=str(path), name=name)
-    else:
-        raise RuntimeError("当前会话类型不支持发送文件")
+async def send_file(path: Path, name: str):
+    """跨适配器发送文件（uniseg 会按当前事件自动选择群/私聊文件接口）"""
+    await UniMessage.file(path=path, name=name).send()
 
 
 # ========================
-# 5. 命令注册
+# 命令注册
 # ========================
 
 mp3_cmd = on_command("mp3", priority=10, block=True)
@@ -195,11 +185,11 @@ cover_cmd = on_command("封面图", priority=10, block=True)
 
 
 # ========================
-# 6. 命令处理函数
+# 命令处理函数
 # ========================
 
 @mp3_cmd.handle()
-async def handle_mp3(bot: Bot, event: Event, args: Message = CommandArg()):
+async def handle_mp3(args: BaseMessage = CommandArg()):
     raw = args.extract_plain_text().strip()
     if not raw:
         await mp3_cmd.finish("请提供B站视频链接或BV号，例如：\n/mp3 BV1xx411c7mD")
@@ -232,7 +222,7 @@ async def handle_mp3(bot: Bot, event: Event, args: Message = CommandArg()):
             await mp3_cmd.finish(f"下载失败：{err}")
 
         try:
-            await send_file(bot, event, temp_file, f"{safe_title}.m4a")
+            await send_file(temp_file, f"{safe_title}.m4a")
             await mp3_cmd.send(f"✅ 音频已发送：{safe_title}")
         except Exception as e:
             logger.error(f"发送音频失败: {e}")
@@ -243,7 +233,7 @@ async def handle_mp3(bot: Bot, event: Event, args: Message = CommandArg()):
 
 
 @mp4_cmd.handle()
-async def handle_mp4(bot: Bot, event: Event, args: Message = CommandArg()):
+async def handle_mp4(args: BaseMessage = CommandArg()):
     raw = args.extract_plain_text().strip()
     if not raw:
         await mp4_cmd.finish("请提供B站视频链接或BV号，例如：\n/mp4 BV1xx411c7mD")
@@ -300,7 +290,7 @@ async def handle_mp4(bot: Bot, event: Event, args: Message = CommandArg()):
                 video_tmp.rename(out_file)
 
             try:
-                await send_file(bot, event, out_file, f"{safe_title}.mp4")
+                await send_file(out_file, f"{safe_title}.mp4")
                 await mp4_cmd.send(f"✅ 视频已发送：{safe_title}")
             except Exception as e:
                 logger.error(f"发送视频失败: {e}")
@@ -329,7 +319,7 @@ async def handle_mp4(bot: Bot, event: Event, args: Message = CommandArg()):
             await mp4_cmd.finish(f"下载失败：{err}")
 
         try:
-            await send_file(bot, event, out_file, f"{safe_title}.mp4")
+            await send_file(out_file, f"{safe_title}.mp4")
             await mp4_cmd.send(f"✅ 视频已发送：{safe_title}")
         except Exception as e:
             logger.error(f"发送视频失败: {e}")
@@ -340,7 +330,7 @@ async def handle_mp4(bot: Bot, event: Event, args: Message = CommandArg()):
 
 
 @cover_cmd.handle()
-async def handle_cover(event: Event, args: Message = CommandArg()):
+async def handle_cover(args: BaseMessage = CommandArg()):
     raw = args.extract_plain_text().strip()
     if not raw:
         await cover_cmd.finish("请提供B站视频链接或BV号，例如：\n/封面图 BV1xx411c7mD")
@@ -367,7 +357,7 @@ async def handle_cover(event: Event, args: Message = CommandArg()):
             await cover_cmd.finish(f"下载封面失败：{err}")
 
         try:
-            await cover_cmd.send(MessageSegment.image(temp_file))
+            await UniMessage.image(path=temp_file).send()
             await cover_cmd.send("✅ 封面图已发送")
         except Exception as e:
             logger.error(f"发送图片失败: {e}")

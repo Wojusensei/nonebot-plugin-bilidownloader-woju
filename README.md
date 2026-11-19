@@ -2,6 +2,8 @@
 
 ✨ 从B站视频下载音频/视频/封面的 NoneBot2 插件 ✨
 
+**支持适配器**：OneBot V11（NapCat / Lagrange 等）与 Milky
+
 ## 功能
 
 - `/mp3 视频链接/BV号` → 发送音频文件（M4A，自动选择最高音质）
@@ -24,7 +26,7 @@ pip install nonebot-plugin-bilidownloader-woju
 /封面图 BV1xx411c7mD
 ```
 
-`/mp3`、`/mp4` 通过群文件/私聊文件接口上传，需要协议端（Lagrange、NapCat 等）支持文件上传 API。
+`/mp3`、`/mp4` 通过群文件/私聊文件接口上传（uniseg 按当前会话自动选择接口），需要协议端支持文件上传。
 
 ### 关于 /mp4 的画质
 
@@ -43,6 +45,16 @@ bilibili_downloader_ffmpeg_path=
 
 - `bilibili_downloader_max_file_mb`：单文件下载大小上限（MB），超过则拒绝下载，默认 500
 - `bilibili_downloader_ffmpeg_path`：ffmpeg 可执行文件路径，留空自动从 PATH 查找
+
+## 0.4.0 更新日志
+
+- **新增 Milky 适配器支持**：文件与图片发送统一改走 nonebot-plugin-alconna
+  的通用消息抽象（`UniMessage.file` / `UniMessage.image`），
+  由 uniseg 按当前会话自动选择群/私聊文件接口；
+  OneBot v11 行为保持不变
+- 插件代码不再直接依赖任何具体适配器（按需环境皆可加载）
+- 命令解析改用适配器无关的基类 Message 注解
+- 元数据如实声明 `supported_adapters={"~onebot.v11", "~milky"}`
 
 ## 0.3.0 更新日志
 
